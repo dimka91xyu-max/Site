@@ -1,0 +1,779 @@
+:root {
+    --bg-dark: #030308;
+    --neon-blue: #00ffcc;
+    --neon-pink: #ff0055;
+    --neon-purple: #9d00ff;
+    --glass-bg: rgba(7, 7, 20, 0.4);
+    --glass-border: rgba(255, 255, 255, 0.05);
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Courier New', Courier, monospace;
+    user-select: none;
+}
+
+body {
+    background-color: var(--bg-dark);
+    color: #fff;
+    min-height: 100vh;
+    overflow: hidden;
+    cursor: none; 
+}
+
+/* --- ХОЛСТ ЗАДНЕГО ФОНА И КИБЕР-СЕТКА HUD --- */
+#bg-canvas {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    z-index: -1;
+    pointer-events: none;
+}
+
+.hud-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: radial-gradient(circle, transparent 40%, rgba(0,0,0,0.8) 100%),
+                linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), 
+                linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+    background-size: 100% 100%, 100% 4px, 6px 100%;
+    z-index: 999;
+    pointer-events: none; /* Сетка больше не блокирует клики по сайту */
+}
+
+
+.scanline {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 4px;
+    background: rgba(0, 255, 204, 0.1);
+    z-index: 1000;
+    pointer-events: none;
+    animation: scanlineAnim 6s linear infinite;
+}
+
+@keyframes scanlineAnim {
+    0% { transform: translateY(-100vh); }
+    100% { transform: translateY(100vh); }
+}
+
+/* --- БОЖЕСТВЕННЫЙ КУРСОР --- */
+.custom-cursor {
+    width: 30px;
+    height: 30px;
+    border: 1px solid var(--neon-blue);
+    position: fixed;
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+    
+    /* Единственное изменение: подняли слой выше модалки (у неё 20000) */
+    z-index: 21000; 
+    
+    transition: width 0.2s, height 0.2s, border-color 0.2s, transform 0.1s ease-out;
+}
+
+.cursor-laser {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 200%;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--neon-blue), transparent);
+    transform: translate(-50%, -50%) rotate(45deg);
+}
+
+.custom-cursor-dot {
+    width: 4px;
+    height: 4px;
+    background-color: var(--neon-pink);
+    position: fixed;
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+    
+    /* Точку делаем чуть выше рамки */
+    z-index: 21001;
+}
+
+
+.custom-cursor.hovered {
+    width: 50px;
+    height: 50px;
+    border-color: var(--neon-pink);
+    transform: translate(-50%, -50%) rotate(90deg);
+}
+/* --- ШАПКА И НАВИГАЦИЯ --- */
+.header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 25px 50px;
+    background: var(--glass-bg);
+    backdrop-filter: blur(20px);
+    border-bottom: 1px solid var(--glass-border);
+    z-index: 1100;
+}
+
+.logo-box {
+    display: flex;
+    flex-direction: column;
+}
+
+.logo {
+    font-size: 24px;
+    font-weight: 900;
+    letter-spacing: 4px;
+}
+
+.logo span {
+    color: var(--neon-pink);
+    text-shadow: 0 0 10px var(--neon-pink);
+}
+
+.system-status {
+    font-size: 10px;
+    color: rgba(255, 255, 255, 0.4);
+    margin-top: 5px;
+    letter-spacing: 1px;
+}
+
+.status-online {
+    color: var(--neon-blue);
+    text-shadow: 0 0 5px var(--neon-blue);
+}
+
+.nav-links {
+    display: flex;
+    list-style: none;
+    gap: 15px;
+}
+
+.nav-btn {
+    background: transparent;
+    border: 1px solid var(--glass-border);
+    color: rgba(255,255,255,0.5);
+    padding: 10px 20px;
+    cursor: none;
+    font-weight: bold;
+    transition: all 0.3s;
+}
+
+.nav-btn:hover, .nav-btn.active {
+    color: var(--neon-blue);
+    border-color: var(--neon-blue);
+    box-shadow: 0 0 15px rgba(0, 255, 204, 0.2);
+    background: rgba(0, 255, 204, 0.05);
+}
+
+.action-trigger {
+    padding: 10px 25px;
+    background: transparent;
+    border: 1px solid var(--neon-pink);
+    color: var(--neon-pink);
+    font-weight: 1000;
+    cursor: none;
+    transition: all 0.3s;
+    letter-spacing: 2px;
+}
+
+.action-trigger:hover {
+    background: var(--neon-pink);
+    color: #fff;
+    box-shadow: 0 0 25px var(--neon-pink);
+}
+
+/* --- СЛОЖНЫЙ VIEWPORT И СЛАЙДЕР СЕКЦИЙ --- */
+.viewport-wrapper {
+    width: 100vw;
+    height: 100vh;
+    perspective: 1600px;
+    overflow: hidden;
+}
+
+.main-container {
+    width: 100%;
+    height: 100%;
+    position: relative;
+    transform-style: preserve-3d;
+    transition: transform 1.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.content-section {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    top: 0;
+    left: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 100px 50px;
+    opacity: 0;
+    pointer-events: none;
+    transform: translateZ(-500px) rotateX(25deg);
+    transition: opacity 0.8s, transform 1s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.content-section.active {
+    opacity: 1;
+    pointer-events: auto;
+    transform: translateZ(0px) rotateX(0deg);
+}
+
+#terminal { 
+    transform: translate3d(-30vw, 0, -200px); 
+    opacity: 0; 
+}
+#modules { 
+    transform: translate3d(30vw, 0, -200px); 
+    opacity: 0; 
+}
+#matrix { 
+    transform: translate3d(0, 30vh, -200px); 
+    opacity: 0; 
+}
+
+/* Когда вкладка становится активной, она встаёт идеально ровно и без наклонов */
+#terminal.active, #modules.active, #matrix.active {
+    transform: translate3d(0, 0, 0) scale(1) rotateX(0deg) rotateY(0deg);
+    opacity: 1;
+}
+
+/* --- ГЛИЧ-ТЕКСТ И ИНТЕРФЕЙС ТЕРМИНАЛА --- */
+.glitch-text {
+    font-size: 56px;
+    font-weight: 900;
+    letter-spacing: 4px;
+    position: relative;
+    color: #fff;
+    margin-bottom: 15px;
+}
+
+.glitch-text::before, .glitch-text::after {
+    content: attr(data-text);
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: var(--bg-dark);
+}
+
+.glitch-text::before {
+    left: 2px;
+    text-shadow: -2px 0 var(--neon-blue);
+    clip: rect(44px, 450px, 56px, 0);
+    animation: glitch-anim 4s infinite linear alternate-reverse;
+}
+
+.glitch-text::after {
+    left: -2px;
+    text-shadow: -2px 0 var(--neon-pink);
+    clip: rect(85px, 450px, 140px, 0);
+    animation: glitch-anim2 4s infinite linear alternate-reverse;
+}
+
+@keyframes glitch-anim {
+    0% { clip: rect(31px, 9999px, 94px, 0); }
+    50% { clip: rect(85px, 9999px, 5px, 0); }
+    100% { clip: rect(2px, 9999px, 115px, 0); }
+}
+
+@keyframes glitch-anim2 {
+    0% { clip: rect(76px, 9999px, 116px, 0); }
+    50% { clip: rect(122px, 9999px, 10px, 0); }
+    100% { clip: rect(67px, 9999px, 45px, 0); }
+}
+
+.subtitle {
+    font-size: 14px;
+    color: rgba(255, 255, 255, 0.5);
+    margin-bottom: 40px;
+    max-width: 600px;
+    text-align: center;
+}
+
+.terminal-box {
+    width: 100%;
+    max-width: 650px;
+    background: rgba(0, 0, 5, 0.8);
+    border: 1px solid var(--neon-blue);
+    border-radius: 6px;
+    overflow: hidden;
+    box-shadow: 0 10px 40px rgba(0, 255, 204, 0.08);
+    margin-bottom: 40px;
+}
+
+.terminal-header {
+    background: rgba(255, 255, 255, 0.03);
+    padding: 12px;
+    border-bottom: 1px solid var(--glass-border);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    cursor: none;
+}
+
+.dot.red { background: #ff5f56; }
+.dot.yellow { background: #ffbd2e; }
+.dot.green { background: #27c93f; }
+
+.terminal-title {
+    font-size: 11px;
+    color: rgba(255, 255, 255, 0.4);
+    margin-left: 10px;
+}
+
+.terminal-body {
+    padding: 20px;
+    height: 180px;
+    overflow-y: auto;
+    text-align: left;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.terminal-input-line {
+    display: flex;
+    align-items: center;
+    padding: 10px 20px;
+    background: rgba(0, 255, 204, 0.03);
+    border-top: 1px solid rgba(0, 255, 204, 0.1);
+}
+
+.input-prompt {
+    color: var(--neon-pink);
+    font-weight: bold;
+    font-size: 13px;
+    margin-right: 10px;
+}
+
+#console-input {
+    flex: 1;
+    background: transparent;
+    border: none;
+    outline: none;
+    color: var(--neon-blue);
+    font-family: inherit;
+    font-size: 13px;
+    cursor: none;
+}
+
+.log-row {
+    font-size: 13px;
+    color: var(--neon-blue);
+    letter-spacing: 1px;
+}
+
+.log-row.error {
+    color: var(--neon-pink);
+    text-shadow: 0 0 5px var(--neon-pink);
+}
+
+.btn-box {
+    display: flex;
+    gap: 20px;
+}
+.cyber-btn {
+    padding: 15px 35px;
+    background: transparent;
+    border: 1px solid var(--neon-blue);
+    color: var(--neon-blue);
+    font-weight: bold;
+    cursor: none;
+    transition: all 0.3s;
+}
+
+.cyber-btn:hover {
+    background: var(--neon-blue);
+    color: #000;
+    box-shadow: 0 0 20px var(--neon-blue);
+    transform: translateY(-2px);
+}
+
+.btn-neon-pink {
+    border-color: var(--neon-pink);
+    color: var(--neon-pink);
+}
+
+.btn-neon-pink:hover {
+    background: var(--neon-pink);
+    color: #fff;
+    box-shadow: 0 0 20px var(--neon-pink);
+}
+
+/* --- КАРТОЧКИ С ПРОГРЕСС-БАРОМ --- */
+.section-title {
+    font-size: 32px;
+    letter-spacing: 4px;
+    margin-bottom: 50px;
+    text-align: center;
+}
+
+.cards-grid {
+    display: flex;
+    gap: 30px;
+    perspective: 1200px;
+}
+
+/* --- ЖЕЛЕЗОБЕТОННАЯ СЕТКА ДЛЯ КАРТОЧЕК --- */
+.cards-wrapper {
+    display: flex !important;
+    flex-direction: row !important;
+    justify-content: center !important;
+    gap: 30px !important;
+    margin-top: 35px !important;
+    width: 100% !important;
+}
+
+/* --- ОКОНЧАТЕЛЬНЫЙ ИСПРАВЛЕННЫЙ КИБЕР-СТИЛЬ КАРТОЧЕК --- */
+.tilt-card {
+    position: relative !important;
+    width: 260px !important;
+    height: 340px !important; /* Фиксированная высота, чтобы ничего не съезжало */
+    background: rgba(6, 6, 14, 0.85) !important;
+    backdrop-filter: blur(15px) !important;
+    -webkit-backdrop-filter: blur(15px) !important;
+    padding: 30px 25px 60px 25px !important;
+    border-radius: 12px !important;
+    text-align: left !important;
+    overflow: hidden !important;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7) !important;
+    transition: transform 0.1s ease-out, box-shadow 0.3s ease, border-color 0.3s ease, background 0.3s ease !important;
+    cursor: none !important;
+}
+
+/* Расчетка контуров по умолчанию на старте */
+.tilt-card[data-module="ai"] { border: 1px solid rgba(0, 255, 204, 0.4) !important; }
+.tilt-card[data-module="security"] { border: 1px solid rgba(255, 0, 85, 0.4) !important; }
+.tilt-card[data-module="hardware"] { border: 1px solid rgba(157, 0, 255, 0.4) !important; }
+
+/* Подсветка текста внутри */
+.tilt-card h3 {
+    font-size: 18px !important;
+    font-weight: bold !important;
+    margin-bottom: 15px !important;
+    letter-spacing: 1px !important;
+    position: relative !important;
+    z-index: 2 !important;
+}
+.tilt-card[data-module="ai"] h3 { color: var(--neon-blue) !important; }
+.tilt-card[data-module="security"] h3 { color: var(--neon-pink) !important; }
+.tilt-card[data-module="hardware"] h3 { color: var(--neon-purple) !important; }
+
+.tilt-card p {
+    font-size: 12px !important;
+    color: rgba(255, 255, 255, 0.8) !important;
+    line-height: 1.6 !important;
+    position: relative !important;
+    z-index: 2 !important;
+}
+
+/* Кнопка железобетонно фиксируется внизу */
+.tilt-card span {
+    position: absolute !important;
+    bottom: 25px !important;
+    left: 25px !important;
+    font-size: 11px !important;
+    font-weight: bold !important;
+    letter-spacing: 1px !important;
+    opacity: 0.4 !important;
+    z-index: 2 !important;
+    transition: all 0.3s ease !important;
+}
+
+/* Интерактивный блик за мышкой */
+.tilt-card::before {
+    content: '' !important;
+    position: absolute !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    background: radial-gradient(circle at var(--mouse-x, 50%) var(--mouse-y, 50%), 
+                                rgba(255, 255, 255, 0.06) 0%, 
+                                transparent 60%) !important;
+    pointer-events: none !important;
+    z-index: 1 !important;
+}
+
+/* --- ЧЕТКИЙ ШРИФТ ДЛЯ ЗАГОЛОВКОВ (БЕЗ КОСИНЫ И ГЛИТЧЕЙ) --- */
+.glitch-text {
+    font-size: 52px !important;
+    text-align: center !important;
+    text-shadow: 0 0 15px rgba(255, 255, 255, 0.2) !important;
+}
+
+/* Полностью выключаем двоение букв, которое создавало эффект наклона */
+.glitch-text::before, .glitch-text::after {
+    display: none !important; 
+}
+
+/* --- СОЧНЫЙ НЕОНОВЫЙ HOVER-ЭФФЕКТ ПРИ НАВЕДЕНИИ --- */
+.tilt-card[data-module="ai"]:hover {
+    border-color: var(--neon-blue) !important;
+    box-shadow: 0 0 30px rgba(0, 255, 204, 0.25), 
+                inset 0 0 15px rgba(0, 255, 204, 0.1) !important;
+    background: rgba(4, 16, 18, 0.85) !important;
+}
+.tilt-card[data-module="ai"]:hover span { color: var(--neon-blue) !important; }
+
+.tilt-card[data-module="security"]:hover {
+    border-color: var(--neon-pink) !important;
+    box-shadow: 0 0 30px rgba(255, 0, 85, 0.25), 
+                inset 0 0 15px rgba(255, 0, 85, 0.1) !important;
+    background: rgba(18, 4, 10, 0.85) !important;
+}
+.tilt-card[data-module="security"]:hover span { color: var(--neon-pink) !important; }
+
+.tilt-card[data-module="hardware"]:hover {
+    border-color: var(--neon-purple) !important;
+    box-shadow: 0 0 30px rgba(157, 0, 255, 0.25), 
+                inset 0 0 15px rgba(157, 0, 255, 0.1) !important;
+    background: rgba(12, 4, 18, 0.85) !important;
+}
+.tilt-card[data-module="hardware"]:hover span { color: var(--neon-purple) !important; }
+
+/* Анимация текста кнопки при наведении */
+.tilt-card:hover span {
+    opacity: 1 !important;
+    text-shadow: 0 0 8px currentColor !important;
+    transform: scale(1.03) !important;
+}
+
+.card-content {
+    transform: translateZ(40px);
+    text-align: center;
+}
+
+.card-icon {
+    font-size: 40px;
+    margin-bottom: 15px;
+}
+
+.card-content h3 {
+    font-size: 18px;
+    margin-bottom: 12px;
+}
+
+.card-content p {
+    font-size: 12px;
+    color: rgba(255,255,255,0.5);
+    line-height: 1.6;
+    margin-bottom: 20px;
+    height: 60px;
+}
+
+.card-bar {
+    width: 100%;
+    height: 3px;
+    background: rgba(255, 255, 255, 0.05);
+    overflow: hidden;
+}
+
+.bar-fill {
+    height: 100%;
+    background: var(--neon-blue);
+    box-shadow: 0 0 10px var(--neon-blue);
+    transition: width 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.tilt-card[data-color="#ff0055"] .bar-fill { background: var(--neon-pink); box-shadow: 0 0 10px var(--neon-pink); }
+.tilt-card[data-color="#9d00ff"] .bar-fill { background: var(--neon-purple); box-shadow: 0 0 10px var(--neon-purple); }
+
+/* --- КРУГОВЫЕ SVG-СЧЕТЧИКИ ДАННЫХ --- */
+.stats-grid {
+    display: flex;
+    gap: 60px;
+}
+
+.stat-box {
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    padding: 30px;
+    text-align: center;
+    backdrop-filter: blur(10px);
+}
+
+.stat-circle {
+    position: relative;
+    width: 160px;
+    height: 160px;
+    margin: 0 auto 20px;
+}
+
+.stat-circle svg {
+    width: 100%;
+    height: 100%;
+    transform: rotate(-90deg);
+}
+
+.stat-circle circle {
+    width: 100%;
+    height: 100%;
+    fill: transparent;
+    stroke: rgba(255, 255, 255, 0.03);
+    stroke-width: 6;
+}
+
+.stat-circle circle:nth-child(1) {
+    stroke: var(--neon-blue);
+    stroke-width: 4;
+    stroke-dasharray: 440;
+    stroke-dashoffset: 440;
+    transition: stroke-dashoffset 2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.stat-box:nth-child(2) circle:nth-child(1) { stroke: var(--neon-pink); }
+.stat-box:nth-child(3) circle:nth-child(1) { stroke: var(--neon-purple); }
+
+.counter {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 32px;
+    font-weight: 900;
+}
+
+.stat-label {
+    font-size: 11px;
+    letter-spacing: 1px;
+    color: rgba(255,255,255,0.4);
+    text-transform: uppercase;
+}
+
+/* --- СТИЛИ ДЛЯ ВЫПЛЫВАЮЩЕГО КИБЕР-ДЕБАГГЕРА --- */
+.debug-panel {
+    position: fixed;
+    bottom: -400px;
+    right: 30px;
+    width: 320px;
+    background: rgba(5, 5, 15, 0.95);
+    border: 1px solid var(--neon-pink);
+    border-radius: 6px;
+    z-index: 2000;
+    box-shadow: 0 0 30px rgba(255, 0, 85, 0.2);
+    overflow: hidden;
+    transition: bottom 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.debug-panel.active {
+    bottom: 30px;
+}
+
+.debug-header {
+    background: rgba(255, 0, 85, 0.1);
+    padding: 12px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid rgba(255, 0, 85, 0.2);
+    font-size: 12px;
+    font-weight: bold;
+    color: var(--neon-pink);
+    letter-spacing: 1px;
+}
+
+#close-debug {
+    background: transparent;
+    border: none;
+    color: rgba(255, 255, 255, 0.4);
+    font-weight: bold;
+    cursor: none;
+}
+
+#close-debug:hover {
+    color: var(--neon-pink);
+}
+
+.debug-body {
+    padding: 25px 20px;
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.7);
+}
+
+.control-group label {
+    display: block;
+    margin-bottom: 8px;
+    color: var(--neon-blue);
+}
+
+.control-group input[type="range"] {
+    width: 100%;
+    accent-color: var(--neon-blue);
+    cursor: none;
+}
+
+@keyframes overload-flash {
+    0%, 100% { background-color: var(--bg-dark); filter: hue-rotate(0deg); }
+    50% { background-color: rgba(255, 0, 85, 0.2); filter: hue-rotate(180deg); }
+}
+/* --- СВЕРХНАДЕЖНЫЙ ФИКС ДЛЯ СУБТИТЛОВ --- */
+.hero-content .subtitle {
+    display: block !important;
+    width: 100% !important;
+    max-width: 800px !important; /* Даем тексту много места в ширину */
+    margin: 0 auto 50px auto !important; /* Центрируем и делаем сочный отступ до карточек */
+    text-align: center !important;
+    white-space: normal !important; /* Разрешаем тексту нормально переноситься по словам */
+    font-size: 14px !important;
+}
+/* --- ЭФФЕКТЫ ДЛЯ РЕЖИМА КРИТИЧЕСКОЙ ПЕРЕГРУЗКИ (OVERLOAD) --- */
+body.overload-active {
+    animation: screenShake 0.15s infinite alternate;
+}
+
+/* Красная аварийная сетка HUD */
+body.overload-active .hud-overlay {
+    background: radial-gradient(circle, transparent 20%, rgba(255,0,0,0.4) 100%),
+                linear-gradient(rgba(255, 0, 0, 0.1) 50%, rgba(0, 0, 0, 0.4) 50%), 
+                linear-gradient(90deg, rgba(255, 0, 0, 0.2), rgba(255, 0, 85, 0.2), rgba(255, 0, 0, 0.2)) !important;
+    background-size: 100% 100%, 100% 4px, 6px 100% !important;
+}
+
+/* Перекрашиваем все неоновые элементы в яростно-красный */
+body.overload-active .glitch-text,
+body.overload-active .logo span,
+body.overload-active .action-trigger {
+    color: #ff003c !important;
+    text-shadow: 0 0 20px #ff003c, 0 0 40px #ff003c !important;
+}
+
+body.overload-active .status-online {
+    color: #ff003c !important;
+    text-shadow: 0 0 10px #ff003c;
+}
+
+/* Возвращаем глитч-эффект, но только во время перегрузки */
+body.overload-active .glitch-text::before, 
+body.overload-active .glitch-text::after {
+    display: block !important;
+}
+
+/* Анимация тряски экрана */
+@keyframes screenShake {
+    0% { transform: translate(1px, 1px) rotate(0deg); }
+    100% { transform: translate(-1px, -1px) rotate(0.2deg); }
+}
+

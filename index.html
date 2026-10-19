@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NEXUS-9 // QUANTUM CORE INTERACTIVE INTERFACE</title>
+    <!-- Прямое и точное подключение style.css -->
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <!-- Живой анимированный фон с физикой отталкивания -->
+    <canvas id="bg-canvas"></canvas>
+
+    <!-- Сетка HUD поверх всего сайта -->
+    <div class="hud-overlay"></div>
+    <div class="scanline"></div>
+
+    <!-- Шапка сайта в стиле жидкого стекла -->
+    <header class="header">
+        <div class="logo-box">
+            <div class="logo">NEXUS<span>.09</span></div>
+            <div class="system-status">SYS_STATUS: <span class="status-online" id="global-status">ONLINE</span></div>
+        </div>
+        <nav class="navigation">
+            <ul class="nav-links">
+                <li><button class="nav-btn active" data-section="terminal">Terminal.exe</button></li>
+                <li><button class="nav-btn" data-section="modules">Modules.cfg</button></li>
+                <li><button class="nav-btn" data-section="matrix">Matrix.dat</button></li>
+            </ul>
+        </nav>
+        <button class="action-trigger" id="system-overload">OVERLOAD</button>
+    </header>
+
+    <!-- Главный контейнер со сложной 3D трансформацией -->
+    <div class="viewport-wrapper">
+        <div class="main-container">
+
+            <!-- СЕКЦИЯ 1: СИМУЛЯТОР ТЕРМИНАЛА ALT LINUX -->
+            <section id="terminal" class="content-section active">
+                <div class="hero-content">
+                    <h1 class="glitch-text" data-text="QUANTUM SYSTEM CORE">QUANTUM SYSTEM CORE</h1>
+                    <p class="subtitle">Инициализировано божественное интерактивное окружение. Вводите команды в консоль управления.</p>
+                    
+                    <div class="terminal-box">
+                        <div class="terminal-header">
+                            <span class="dot red" id="close-term-btn"></span><span class="dot yellow"></span><span class="dot green"></span>
+                            <!-- Изменили имя хоста под ALT Linux -->
+                            <span class="terminal-title">altuser@alt-nexus9:~</span>
+                        </div>
+                        <div class="terminal-body" id="terminal-log">
+                            <div class="log-row" style="color: #55ff55;">Добро пожаловать в ALT Linux (Sisyphus branch) // Nexus Core Edition!</div>
+                            <div class="log-row">Используйте 'help' или 'info' для вывода доступных команд.</div>
+                            <div class="log-row" style="color: rgba(255,255,255,0.4);">Последний вход: Sat Oct 17 2026 с узла quantum-node-9</div>
+                            <div class="log-row"> </div>
+                        </div>
+                        <!-- Строка ввода с поддержкой динамического линуксового приглашения -->
+                        <div class="terminal-input-line">
+                            <span class="input-prompt" id="alt-prompt" style="color: var(--neon-pink); font-weight: bold; font-size: 13px; margin-right: 10px;">altuser@alt-nexus9:~ $</span>
+                            <input type="text" id="console-input" autocomplete="off" autofocus placeholder="Введите команду...">
+                        </div>
+                    </div>
+
+                    <div class="btn-box">
+                        <button class="cyber-btn btn-neon-blue" id="btn-initialize">Синхронизировать</button>
+                        <button class="cyber-btn btn-neon-pink" id="audio-toggle">Аудиоэффекты: ВКЛ</button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- СЕКЦИЯ 2: ИНТЕРАКТИВНЫЕ МОДУЛИ -->
+            <section id="modules" class="content-section">
+                <div class="hero-content">
+                    <h1 class="glitch-text" data-text="CORE MODULES">CORE MODULES</h1>
+                    <p class="subtitle">Нажмите на любой модуль ядра для управления его конфигурацией и просмотра логов синхронизации.</p>
+                    
+                    <div class="cards-wrapper">
+                        <div class="tilt-card" data-module="ai">
+                            <h3>AI_Neural_Net</h3>
+                            <p>Управление синаптическими цепями интерфейса. Статус: Стабильно.</p>
+                            <span>[ОТКРЫТЬ МОДУЛЬ]</span>
+                        </div>
+                        <div class="tilt-card" data-module="security">
+                            <h3>Cyber_Security</h3>
+                            <p>Шифрование данных квантового потока. Защита: Максимальная.</p>
+                            <span>[ОТКРЫТЬ МОДУЛЬ]</span>
+                        </div>
+                        <div class="tilt-card" data-module="hardware">
+                            <h3>Hardware_Sync</h3>
+                            <p>Синхронизация с физическими компонентами. Частота: 5.4 ГГц.</p>
+                            <span>[ОТКРЫТЬ МОДУЛЬ]</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- СЕКЦИЯ 3: ЖИВАЯ ДИНАМИЧЕСКАЯ МАТРИЦА С БЕГУЩИМИ СТРОКАМИ -->
+            <section id="matrix" class="content-section">
+                <div class="hero-content">
+                    <h1 class="glitch-text" data-text="MATRIX DATA STREAM">MATRIX DATA STREAM</h1>
+                    <p class="subtitle">Потоковый мониторинг распределения квантовой энергии ядра в реальном времени.</p>
+                    
+                    <div class="terminal-box" style="border-color: var(--neon-purple); max-width: 600px; width: 100%;">
+                        <div class="terminal-header" style="border-color: rgba(157, 0, 255, 0.2); display: flex; justify-content: space-between;">
+                            <span class="terminal-title">matrix_streamer.dat</span>
+                            <span id="matrix-pulse" style="font-size: 11px; color: var(--neon-purple); font-weight: bold; animation: blink 1s infinite;">● STREAMING</span>
+                        </div>
+                        <div class="terminal-body" style="height: 140px; font-family: monospace; color: var(--neon-purple); font-size: 13px; justify-content: flex-start; display: flex; flex-direction: column;" id="matrix-log-box">
+                            <!-- Сюда скрипт бесконечно наваливает живые строки логов -->
+                        </div>
+                        <div style="background: rgba(157, 0, 255, 0.05); padding: 15px; border-top: 1px solid rgba(157, 0, 255, 0.2); display: flex; justify-content: space-between; align-items: center;">
+                            <span style="font-size: 11px; color: rgba(255,255,255,0.4);">ТЕКУЩАЯ СИНХРОНИЗАЦИЯ:</span>
+                            <div style="font-size: 26px; color: #fff; font-weight: bold; font-family: monospace; text-shadow: 0 0 10px var(--neon-purple);" id="matrix-counter">00.00%</div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+        </div>
+    </div>
+
+    <!-- КИБЕРПАНК МОДАЛЬНОЕ ОКНО ДЛЯ ПРОСМОТРА ДЕТАЛЕЙ КАРТОЧЕК -->
+    <div id="module-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(3, 3, 8, 0.85); backdrop-filter: blur(15px); z-index: 20000; justify-content: center; align-items: center; cursor: none;">
+        <div style="width: 450px; background: rgba(5, 5, 15, 0.95); border: 2px solid #fff; padding: 30px; border-radius: 10px; position: relative; box-shadow: 0 0 40px rgba(255,255,255,0.1);" id="modal-content-box">
+            <button id="close-modal-btn" style="position: absolute; top: 15px; right: 15px; background: transparent; border: none; color: #fff; font-size: 20px; font-weight: bold; cursor: none;">✕</button>
+            <h2 id="modal-title" style="margin-bottom: 20px; font-size: 24px; font-weight: 900; letter-spacing: 2px;">MODULE_NAME</h2>
+            <div id="modal-body-text" style="font-size: 13px; line-height: 1.6; color: rgba(255,255,255,0.8); margin-bottom: 35px; min-height: 80px;">Текст описания...</div>
+            <div style="display: flex; gap: 15px;">
+                <button class="cyber-btn" id="modal-action-btn" style="flex: 1; padding: 12px; font-weight: bold; background: transparent; font-size: 12px; cursor: none;">ПЕРЕЗАГРУЗКА</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ПОДКЛЮЧЕНИЕ СЦЕНАРИЯ JAVASCRIPT -->
+    <script src="script.js"></script>
+
+    <!-- Кастомный курсор на законном месте в самом низу -->
+    <div class="custom-cursor">
+        <div class="cursor-laser"></div>
+    </div>
+    <div class="custom-cursor-dot"></div>
+
+</body>
+</html>
